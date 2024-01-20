@@ -1,0 +1,320 @@
+---
+- name: Linux Check Playbook
+  hosts: all
+  gather_facts: true
+
+  tasks:
+    - name: Remove Existing Output Files
+      file:
+        path: "/home/ansible/system/"
+        state: absent
+      ignore_errors: true
+
+    - name: Create Output Directory
+      file:
+        path: "/home/ansible/system/"
+        state: directory
+
+    - name: Create file with host_name # second step we created the file 
+      file:
+        path: /home/ansible/system/{{ ansible_hostname }}.txt
+        state: touch
+    
+    - name: Get hostname           # thired point we need to know the hostname to orgainze all data related to the targets
+      ansible.builtin.shell: |
+       echo '________________________________________' &&
+       echo 'hostname:'{{ ansible_hostname }}&&
+       echo '________________________________________'&&
+       echo 'ips:'{{ ansible_default_ipv4.address }} &&
+       echo '________________________________________'
+
+      register: hostname_result     # we saved the output in the variable to save to the ouput in the file
+
+    - name: Display hostname
+      debug:
+        var: hostname_result.stdout
+
+    - name: Save hostname to a file
+      lineinfile:
+        path: /home/ansible/system/{{ ansible_hostname }}.txt
+        line: "{{ hostname_result.stdout }}"    
+  
+    - name: display line
+      shell:  echo '---------------------------------------------------------------------------------------'
+      register: result
+
+    - name: Save list to a file
+      lineinfile:
+        path: /home/ansible/system/{{ ansible_hostname }}.txt
+        line: "{{ result.stdout }}"
+
+    - name: display banar for disk usage
+      shell: |
+       echo '***************************************************************************************************' &&
+       echo '*                            Show disk Usage Information                                          *' &&
+       echo '***************************************************************************************************'
+      register: A_result
+
+    - name: Save list to a file
+      lineinfile:
+        path: /home/ansible/system/{{ ansible_hostname }}.txt
+        line: "{{ A_result.stdout }}"
+
+    - name: Get disk space information         #save all info about the disk space in the file
+      command: df -h
+      register: disk_space_info
+
+    - name: Display disk space information
+      debug:
+        var: disk_space_info.stdout_lines
+    - name: Save list of users to a file
+      lineinfile:
+        path: /home/ansible/system/{{ ansible_hostname }}.txt
+        line: "{{ disk_space_info.stdout }}"
+    
+    - name: display line
+      shell:  echo '----------------------------------------------------------------------------------------'
+      register: result1
+
+    - name: Save list to a file
+      lineinfile:
+        path: /home/ansible/system/{{ ansible_hostname }}.txt
+        line: "{{ result1.stdout }}"
+
+    - name: display banar for list installed packages
+      shell: |
+       echo '***************************************************************************************************' &&
+       echo '*                            list installed packages latest                                       *' &&
+       echo '***************************************************************************************************'
+      register: B_result
+
+    - name: Save list to a file
+      lineinfile:
+        path: /home/ansible/system/{{ ansible_hostname }}.txt
+        line: "{{ B_result.stdout }}"
+
+    - name: List Installed Packages (Red Hat-based)
+      shell: rpm -qa --last | grep 2023
+      register: installed_packages
+      ignore_errors: yes
+
+    - name: Save Installed Packages (Red Hat-based) to File
+      when: not installed_packages.failed
+      lineinfile:
+        path: "/home/ansible/system/{{ ansible_hostname }}.txt"
+        line: "{{ installed_packages.stdout_lines | join('\n') }}"
+    
+    - name: display line
+      shell:   echo '-----------------------------------------------------------------------------------------'
+      register: result2
+
+    - name: Save list to a file
+      lineinfile:
+        path: /home/ansible/system/{{ ansible_hostname }}.txt
+        line: "{{ result2.stdout }}"
+    
+    - name: display banar for check listening ports
+      shell: |
+       echo '***************************************************************************************************' &&
+       echo '*                             check listening ports                                               *' &&
+       echo '***************************************************************************************************'
+      register: C_result
+
+    - name: Save list to a file
+      lineinfile:
+        path: /home/ansible/system/{{ ansible_hostname }}.txt
+        line: "{{ C_result.stdout }}"    
+    - name: Check Listening Ports
+      command: netstat -tuln
+      register: listening_ports_output    
+
+    - name: Save list of users to a file
+      lineinfile:
+        path: /home/ansible/system/{{ ansible_hostname }}.txt
+        line: "{{ listening_ports_output.stdout }}"
+    
+    - name: display line
+      shell:   echo '------------------------------------------------------------------------------------------'
+      register: result3
+
+    - name: Save list to a file
+      lineinfile:
+        path: /home/ansible/system/{{ ansible_hostname }}.txt
+        line: "{{ result3.stdout }}" 
+    - name: display banar for showing running process
+      shell: |
+       echo '***************************************************************************************************' &&
+       echo '*                            Showing Running Processes                                            *' &&
+       echo '***************************************************************************************************'
+      register: D_result
+
+    - name: Save list to a file
+      lineinfile:
+        path: /home/ansible/system/{{ ansible_hostname }}.txt
+        line: "{{ D_result.stdout }}"    
+
+    - name: Show Running Processes
+      command: ps aux
+      register: running_processes_output
+
+
+    - name: Save list of users to a file
+      lineinfile:
+        path: /home/ansible/system/{{ ansible_hostname }}.txt
+        line: "{{ running_processes_output.stdout }}"
+
+
+
+    - name: display line
+      shell:   echo '-------------------------------------------------------------------------------------------'
+      register: result4
+
+    - name: Save list to a file
+      lineinfile:
+        path: /home/ansible/system/{{ ansible_hostname }}.txt
+        line: "{{ result4.stdout }}"
+    - name: display banar for Display network interfaces
+      shell: |
+       echo '***************************************************************************************************' &&
+       echo '*                            Displaying network interfaces                                        *' &&
+       echo '***************************************************************************************************'
+      register: E_result
+
+    - name: Save list to a file
+      lineinfile:
+        path: /home/ansible/system/{{ ansible_hostname }}.txt
+        line: "{{ E_result.stdout }}"
+
+    - name: Display Network Interfaces
+      command: ifconfig -a
+      register: network_interfaces_output
+
+    - name: Save list of users to a file
+      lineinfile:
+        path: /home/ansible/system/{{ ansible_hostname }}.txt
+        line: "{{ network_interfaces_output.stdout }}"
+    - name: display line
+      shell:   echo '--------------------------------------------------------------------------------------------'
+      register: result5
+
+    - name: Save list to a file
+      lineinfile:
+        path: /home/ansible/system/{{ ansible_hostname }}.txt
+        line: "{{ result5.stdout }}"
+    - name: display banar for checking active users
+      shell: |
+       echo '***************************************************************************************************' &&
+       echo '*                                Check active users                                               *' &&
+       echo '***************************************************************************************************'
+      register: F_result
+
+    - name: Save list to a file
+      lineinfile:
+        path: /home/ansible/system/{{ ansible_hostname }}.txt
+        line: "{{ F_result.stdout }}"    
+    - name: Check Active Users
+      command: who
+      register: active_users_output
+    - name: Save list of users to a file
+      lineinfile:
+        path: /home/ansible/system/{{ ansible_hostname }}.txt
+        line: "{{ active_users_output.stdout }}"
+    - name: display line
+      shell:   echo '---------------------------------------------------------------------------------------------'
+      register: result6
+
+    - name: Save list to a file
+      lineinfile:
+        path: /home/ansible/system/{{ ansible_hostname }}.txt
+        line: "{{ result6.stdout }}"
+    - name: display banar for check dns resolution
+      shell: |
+       echo '***************************************************************************************************' &&
+       echo '*                            Check DNS Resolution                                                 *' &&
+       echo '***************************************************************************************************'
+      register: G_result
+
+    - name: Save list to a file
+      lineinfile:
+        path: /home/ansible/system/{{ ansible_hostname }}.txt
+        line: "{{ G_result.stdout }}"
+    - name: Check DNS Resolution
+      command: nslookup google.com
+      register: dns_output
+
+    - name: Save list of users to a file
+      lineinfile:
+        path: /home/ansible/system/{{ ansible_hostname }}.txt
+        line: "{{ dns_output.stdout }}"
+    - name: display line
+      shell:  echo '-----------------------------------------------------------------------------------------------'
+      register: result7
+
+    - name: Save list to a file
+      lineinfile:
+        path: /home/ansible/system/{{ ansible_hostname }}.txt
+        line: "{{ result7.stdout }}"
+    - name: display banar for Check NTP Synchronization
+      shell: |
+       echo '***************************************************************************************************' &&
+       echo '*                            Check NTP Synchronization                                            *' &&
+       echo '***************************************************************************************************'
+      register: H_result
+
+    - name: Save list to a file
+      lineinfile:
+        path: /home/ansible/system/{{ ansible_hostname }}.txt
+        line: "{{ H_result.stdout }}"
+    - name: Check NTP Synchronization
+      shell: grep '^server' /etc/chrony.conf
+      register: ntp_output
+
+    - name: Save list of users to a file
+      lineinfile:
+        path: /home/ansible/system/{{ ansible_hostname }}.txt
+        line: "{{ ntp_output.stdout }}"
+    - name: display line
+      shell:  echo '------------------------------------------------------------------------------------------------'
+      register: result8
+  
+    - name: Save list to a file
+      lineinfile:
+        path: /home/ansible/system/{{ ansible_hostname }}.txt
+        line: "{{ result8.stdout }}"
+
+    - name: display banar for Check Firewall Ports
+      shell: |
+       echo '***************************************************************************************************' &&
+       echo '*                            Check Firewall Ports                                                 *' &&
+       echo '***************************************************************************************************'
+      register: J_result
+
+    - name: Save list to a file
+      lineinfile:
+        path: /home/ansible/system/{{ ansible_hostname }}.txt
+        line: "{{ J_result.stdout }}"
+  
+    - name: Check Firewall Ports
+      command: iptables -L -n
+      register: firewall_output
+
+    - name: Save list of users to a file
+      lineinfile:
+        path: /home/ansible/system/{{ ansible_hostname }}.txt
+        line: "{{ firewall_output.stdout }}"
+    - name: display line
+      shell:  echo '-------------------------------------------------------------------------------------------------'
+      register: result9
+
+    - name: Save list to a file
+      lineinfile:
+        path: /home/ansible/system/{{ ansible_hostname }}.txt
+        line: "{{ result9.stdout }}"
+    - name: Fetch Files
+      fetch:
+        src: "/home/ansible/system/{{ inventory_hostname }}.txt"
+        dest: "/home/ansible/Projects/"
+        flat: yes
+      ignore_errors: yes
+
+
